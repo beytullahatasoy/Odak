@@ -11,15 +11,16 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0D0D0F"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.odak.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0D0D0F"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
