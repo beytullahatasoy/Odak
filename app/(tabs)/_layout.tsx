@@ -42,6 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="daily"
         options={{
+          headerShown: false,
           headerTitle: 'Günlük Özet',
           tabBarLabel: 'Günlük',
           tabBarIcon: ({ color }) => <TabBarIcon name="calendar-o" color={color} />,
@@ -50,6 +51,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="weekly"
         options={{
+          headerShown: false,
           headerTitle: 'Haftalık Özet',
           tabBarLabel: 'Haftalık',
           tabBarIcon: ({ color }) => <TabBarIcon name="bar-chart" color={color} />,

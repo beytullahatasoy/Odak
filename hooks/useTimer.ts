@@ -15,14 +15,16 @@ export function useTimer() {
         progress.value = 0;
 
         intervalRef.current = setInterval(() => {
-            setSecondsElapsed((prev) => {
-                const next = prev + 1;
-                // Progress loops every 60 seconds linearly to feel alive
-                progress.value = withTiming((next % 60) / 60, { duration: 1000, easing: Easing.linear });
-                return next;
-            });
+            setSecondsElapsed((prev) => prev + 1);
         }, 1000);
     };
+
+    useEffect(() => {
+        if (isActive && secondsElapsed > 0) {
+            // Progress loops every 60 seconds linearly to feel alive
+            progress.value = withTiming((secondsElapsed % 60) / 60, { duration: 1000, easing: Easing.linear });
+        }
+    }, [secondsElapsed, isActive, progress]);
 
     const stopTimer = () => {
         setIsActive(false);

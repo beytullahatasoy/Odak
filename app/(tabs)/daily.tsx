@@ -47,7 +47,7 @@ export default function DailyScreen() {
     const diffDisplay = diffMins >= 0 ? `+${diffMins}` : diffMins.toString();
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
                 <TopHeader />
 

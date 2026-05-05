@@ -54,7 +54,7 @@ export default function AnaSayfa() {
   const remainingMins = Math.floor(remainingSeconds / 60);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
 
         <TopHeader showStreak={!showBrokenUI} currentStreak={settings.currentStreak} />

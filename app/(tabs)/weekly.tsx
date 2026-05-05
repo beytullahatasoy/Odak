@@ -4,6 +4,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { getWeeklyComparison } from '@/utils/insights';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarChart, barDataItem } from 'react-native-gifted-charts';
@@ -81,12 +82,25 @@ export default function WeeklyScreen() {
     const worstDayName = worstDayIndex >= 0 && maxVal > 0 ? chartData[worstDayIndex].label : '—';
 
     const totalHrs = Math.floor(totalSeconds / 3600);
-    const avgHrs = (totalHrs / 7).toFixed(1);
+    const totalMins = Math.floor((totalSeconds % 3600) / 60);
+    const avgSeconds = totalSeconds / 7;
+    const avgHrs = Math.floor(avgSeconds / 3600);
+    const avgMins = Math.floor((avgSeconds % 3600) / 60);
+
+    const formatTime = (h: number, m: number) => {
+        if (h > 0 && m > 0) return `${h} sa ${m} dk`;
+        if (h > 0) return `${h} saat`;
+        return `${m} dk`;
+    };
+
+    const totalTimeText = formatTime(totalHrs, totalMins);
+    const avgTimeText = formatTime(avgHrs, avgMins);
+
     const weeklyGoalSeconds = settings.dailyGoalMinutes * 60 * 7;
     const efficiency = weeklyGoalSeconds > 0 ? Math.min(100, Math.round((totalSeconds / weeklyGoalSeconds) * 100)) : 0;
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
                 <TopHeader />
 
@@ -105,7 +119,7 @@ export default function WeeklyScreen() {
                         <Text style={styles.insightMainText}>{insightText}</Text>
 
                         <View style={styles.buttonWrapper}>
-                            <Pressable style={styles.detailButton}>
+                            <Pressable style={styles.detailButton} onPress={() => router.push('/daily')}>
                                 <Text style={styles.detailButtonText}>Detayları Gör</Text>
                             </Pressable>
                         </View>
@@ -115,14 +129,12 @@ export default function WeeklyScreen() {
                     <View style={styles.statsCardContainer}>
                         <View style={styles.statRowBlock}>
                             <Text style={styles.statLabelLeft}>TOPLAM</Text>
-                            <Text style={styles.statValueRow}>
-                                {totalHrs} <Text style={styles.statSubValueRow}>saat</Text>
-                            </Text>
+                            <Text style={styles.statValueRow}>{totalTimeText}</Text>
                         </View>
                         <View style={styles.statRowBlock}>
                             <Text style={styles.statLabelLeft}>ORTALAMA</Text>
                             <Text style={styles.statValueRow}>
-                                {avgHrs} <Text style={styles.statSubValueRow}>saat/gün</Text>
+                                {avgTimeText} <Text style={styles.statSubValueRow}>/gün</Text>
                             </Text>
                         </View>
                         <View style={styles.statRowBlock}>
