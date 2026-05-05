@@ -8,6 +8,7 @@ export interface Session {
     startTime: string; // ISO date string
     endTime: string;   // ISO date string
     duration: number;  // seconds
+    title?: string;    // Custom title for the session
 }
 
 export interface Settings {

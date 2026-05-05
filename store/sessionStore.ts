@@ -8,6 +8,7 @@ interface SessionState {
     addSession: (session: Session) => void;
     getTodayTotalSeconds: () => number;
     getTodaySessionsCount: () => number;
+    updateSessionTitle: (id: string, title: string) => void;
 }
 
 export const useSessionStore = create<SessionState>((set, get) => ({
@@ -38,5 +39,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         const { sessions } = get();
         const today = new Date().toISOString().split('T')[0];
         return sessions.filter((s) => s.startTime.startsWith(today)).length;
+    },
+
+    updateSessionTitle: (id, title) => {
+        const { sessions } = get();
+        const newSessions = sessions.map(s => s.id === id ? { ...s, title } : s);
+        set({ sessions: newSessions });
+        saveSessions(newSessions);
     },
 }));

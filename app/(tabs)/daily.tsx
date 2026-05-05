@@ -46,6 +46,9 @@ export default function DailyScreen() {
     const diffMins = Math.floor(todayTotalSeconds / 60) - 25;
     const diffDisplay = diffMins >= 0 ? `+${diffMins}` : diffMins.toString();
 
+    const [showAllHistory, setShowAllHistory] = useState(false);
+    const displayedSessions = showAllHistory ? todaySessions : todaySessions.slice(0, 3);
+
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
@@ -112,18 +115,25 @@ export default function DailyScreen() {
                     <View style={styles.historySection}>
                         <View style={styles.historyHeader}>
                             <Text style={styles.sectionTitle}>Oturum Geçmişi</Text>
-                            <Text style={styles.viewAllText}>Tümünü Gör</Text>
+                            {todaySessions.length > 3 && (
+                                <Pressable onPress={() => setShowAllHistory(!showAllHistory)}>
+                                    <Text style={styles.viewAllText}>{showAllHistory ? 'Daha Az Gör' : 'Tümünü Gör'}</Text>
+                                </Pressable>
+                            )}
                         </View>
                         {todaySessions.length === 0 ? (
                             <Text style={styles.emptyText}>Bugün henüz oturum kaydedilmedi.</Text>
                         ) : (
-                            todaySessions.map((s, idx) => (
-                                <SessionCard
-                                    key={s.id}
-                                    session={s}
-                                    isLongest={idx === longestSessionIndex && s.duration > 0}
-                                />
-                            ))
+                            displayedSessions.map((s) => {
+                                const originalIndex = todaySessions.findIndex(ts => ts.id === s.id);
+                                return (
+                                    <SessionCard
+                                        key={s.id}
+                                        session={s}
+                                        isLongest={originalIndex === longestSessionIndex && s.duration > 0}
+                                    />
+                                );
+                            })
                         )}
                     </View>
 

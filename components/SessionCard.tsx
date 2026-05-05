@@ -1,34 +1,56 @@
 import { theme } from '@/constants/theme';
+import { useSessionStore } from '@/store/sessionStore';
 import { Session } from '@/utils/storage';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface Props {
     session: Session;
     isLongest?: boolean;
 }
 
-const SUBJECTS = ["Matematik", "Fizik", "Biyoloji", "Tarih", "Edebiyat"];
-const ICONS = ["calculator", "flask", "leaf", "book", "pencil"];
-
 export default function SessionCard({ session, isLongest }: Props) {
-    // Use session ID to rudimentarily pick a deterministic random subject
-    const idHash = session.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    const subjectName = SUBJECTS[idHash % SUBJECTS.length];
-    const iconName = ICONS[idHash % ICONS.length] as any;
+    const updateSessionTitle = useSessionStore(state => state.updateSessionTitle);
+    const [isEditing, setIsEditing] = useState(false);
+    const [title, setTitle] = useState(session.title || '1. Oturum');
 
     const hrs = Math.floor(session.duration / 3600);
     const mins = Math.floor((session.duration % 3600) / 60);
     const durationStr = hrs > 0 ? `${hrs}s ${mins}dk` : `${mins} dk`;
 
+    const handleSave = () => {
+        setIsEditing(false);
+        if (title.trim() !== '') {
+            updateSessionTitle(session.id, title);
+        } else {
+            setTitle(session.title || '1. Oturum');
+        }
+    };
+
     return (
         <View style={[styles.card, isLongest && styles.cardActive]}>
             <View style={styles.iconCircle}>
-                <FontAwesome name={iconName} size={14} color={isLongest ? theme.colors.accentLight : theme.colors.textSecondary} />
+                <FontAwesome name="book" size={14} color={isLongest ? theme.colors.accentLight : theme.colors.textSecondary} />
             </View>
             <View style={styles.content}>
-                <Text style={styles.title}>{subjectName}</Text>
+                {isEditing ? (
+                    <TextInput
+                        style={styles.titleInput}
+                        value={title}
+                        onChangeText={setTitle}
+                        onBlur={handleSave}
+                        onSubmitEditing={handleSave}
+                        autoFocus
+                    />
+                ) : (
+                    <View style={styles.titleRow}>
+                        <Text style={styles.title}>{session.title || '1. Oturum'}</Text>
+                        <Pressable onPress={() => setIsEditing(true)} style={styles.editIcon}>
+                            <FontAwesome name="pencil" size={12} color={theme.colors.textSecondary} />
+                        </Pressable>
+                    </View>
+                )}
                 {isLongest && (
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>EN UZUN</Text>
@@ -72,11 +94,29 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'flex-start',
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 4,
+    },
     title: {
         color: theme.colors.textPrimary,
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    editIcon: {
+        padding: 4,
+    },
+    titleInput: {
+        color: theme.colors.textPrimary,
+        fontSize: 16,
+        fontWeight: 'bold',
         marginBottom: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.accentLight,
+        padding: 0,
+        minWidth: 100,
     },
     badge: {
         backgroundColor: '#26263B',

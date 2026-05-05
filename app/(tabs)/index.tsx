@@ -33,6 +33,7 @@ export default function AnaSayfa() {
         startTime,
         endTime: new Date().toISOString(),
         duration,
+        title: `${todaySessionsCount + 1}. Oturum`,
       });
 
       const updatedStreak = calculateStreak(settings, duration, startTime);
