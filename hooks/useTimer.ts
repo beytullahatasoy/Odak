@@ -5,7 +5,7 @@ export function useTimer() {
     const [isActive, setIsActive] = useState(false);
     const [secondsElapsed, setSecondsElapsed] = useState(0);
     const [startTime, setStartTime] = useState<string | null>(null);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progress = useSharedValue(0);
 
     const startTimer = () => {
