@@ -5,6 +5,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import notifee from '@notifee/react-native';
+
+notifee.registerForegroundService((notification) => {
+  return new Promise(() => {
+    // Servis durdurulana kadar arka planda çalışmasını sağlayan açık bir Promise
+  });
+});
 
 import { theme } from '@/constants/theme';
 import { useSessionStore } from '@/store/sessionStore';

@@ -1,8 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const ACTIVE_SESSION_KEY = 'odak_active_session_start';
+
+const formatTime = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    if (hrs > 0) {
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
 
 export function useTimer() {
     const [isActive, setIsActive] = useState(false);
@@ -10,6 +21,31 @@ export function useTimer() {
     const [startTime, setStartTime] = useState<string | null>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progress = useSharedValue(0);
+
+    const updateNotification = async (seconds: number) => {
+        try {
+            await notifee.requestPermission();
+            const channelId = await notifee.createChannel({
+                id: 'odak_timer',
+                name: 'Odak Zamanlayıcısı',
+                importance: AndroidImportance.LOW,
+            });
+
+            await notifee.displayNotification({
+                id: 'timer',
+                title: 'Odak Süresi Devam Ediyor',
+                body: formatTime(seconds),
+                android: {
+                    channelId,
+                    asForegroundService: true,
+                    ongoing: true,
+                    onlyAlertOnce: true,
+                },
+            });
+        } catch (e) {
+            console.log('Notifee hatası (muhtemelen Expo Go kullanılıyor):', e);
+        }
+    };
 
     // On mount, check if there's an active session
     useEffect(() => {
@@ -24,14 +60,20 @@ export function useTimer() {
                     if (startMs <= nowMs) {
                         setIsActive(true);
                         setStartTime(savedStart);
-                        setSecondsElapsed(Math.floor((nowMs - startMs) / 1000));
+                        const initialSeconds = Math.floor((nowMs - startMs) / 1000);
+                        setSecondsElapsed(initialSeconds);
                         
+                        // Restart notification
+                        updateNotification(initialSeconds);
+
                         if (intervalRef.current) {
                             clearInterval(intervalRef.current);
                         }
 
                         intervalRef.current = setInterval(() => {
-                            setSecondsElapsed(Math.floor((Date.now() - startMs) / 1000));
+                            const newSeconds = Math.floor((Date.now() - startMs) / 1000);
+                            setSecondsElapsed(newSeconds);
+                            updateNotification(newSeconds);
                         }, 1000);
                     } else {
                         await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
@@ -60,12 +102,16 @@ export function useTimer() {
             console.error('Failed to save active session', e);
         }
 
+        updateNotification(0);
+
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
 
         intervalRef.current = setInterval(() => {
-            setSecondsElapsed(Math.floor((Date.now() - startMs) / 1000));
+            const newSeconds = Math.floor((Date.now() - startMs) / 1000);
+            setSecondsElapsed(newSeconds);
+            updateNotification(newSeconds);
         }, 1000);
     };
 
@@ -88,6 +134,13 @@ export function useTimer() {
         // Remove active session from storage
         AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(e => console.error(e));
         
+        try {
+            notifee.stopForegroundService();
+            notifee.cancelNotification('timer');
+        } catch(e) {
+            console.log('Notifee durdurma hatası:', e);
+        }
+
         return duration; // returns total seconds studied
     };
 
@@ -98,16 +151,6 @@ export function useTimer() {
             }
         };
     }, []);
-
-    const formatTime = (totalSeconds: number) => {
-        const hrs = Math.floor(totalSeconds / 3600);
-        const mins = Math.floor((totalSeconds % 3600) / 60);
-        const secs = totalSeconds % 60;
-        if (hrs > 0) {
-            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
 
     return {
         isActive,
