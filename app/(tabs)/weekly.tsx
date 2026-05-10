@@ -70,18 +70,18 @@ export default function WeeklyScreen() {
             label: DAYS[dObj.getDay() === 0 ? 6 : dObj.getDay() - 1],
             spacing: 16,
             labelWidth: 30,
-            labelTextStyle: { color: theme.colors.textSecondary, fontSize: 8, fontWeight: 'bold' },
+            labelTextStyle: { color: theme.colors.textSecondary, fontSize: 11, fontWeight: 'bold' },
             frontColor: isMax ? theme.colors.accentLight : '#1C1C28',
-            topLabelComponent: () => (
-                <View style={{ alignItems: 'center', marginBottom: 4 }}>
-                    {isMax && <View style={styles.chartMaxBadge}><Text style={styles.chartMaxText}>MAX</Text></View>}
-                    {value > 0 && (
-                        <Text style={{ color: theme.colors.textSecondary, fontSize: 8, fontWeight: 'bold' }}>
+            topLabelComponent: () => {
+                if (value <= 0) return null;
+                return (
+                    <View style={{ alignItems: 'center', marginBottom: 4 }}>
+                        <Text style={{ color: isMax ? theme.colors.accentLight : theme.colors.textSecondary, fontSize: 11, fontWeight: 'bold' }}>
                             {viewMode === 'Saat' ? `${value.toFixed(1)}s` : `${value}`}
                         </Text>
-                    )}
-                </View>
-            ),
+                    </View>
+                );
+            },
         };
     });
 
@@ -380,18 +380,6 @@ const styles = StyleSheet.create({
     chartWrapper: {
         alignItems: 'center',
         marginBottom: 20,
-    },
-    chartMaxBadge: {
-        backgroundColor: theme.colors.accentLight,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    chartMaxText: {
-        color: theme.colors.background,
-        fontSize: 8,
-        fontWeight: 'bold',
     },
     graphBottomRow: {
         flexDirection: 'row',

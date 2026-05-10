@@ -12,7 +12,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AnaSayfa() {
-  const { isActive, formattedTime, progress, startTime, startTimer, stopTimer } = useTimer();
+  const { isActive, isPaused, formattedTime, progress, startTime, startTimer, pauseTimer, resumeTimer, stopTimer } = useTimer();
 
   const addSession = useSessionStore(state => state.addSession);
   const todayTotalSeconds = useSessionStore(state => state.getTodayTotalSeconds());
@@ -134,12 +134,26 @@ export default function AnaSayfa() {
                 />
               </View>
 
-              <Pressable
-                style={styles.primaryButton}
-                onPress={isActive ? handleStop : startTimer}
-              >
-                <Text style={styles.primaryButtonText}>{isActive ? 'Durdur' : 'Derse Başla'}</Text>
-              </Pressable>
+              {isActive ? (
+                <View style={styles.actionButtonsRow}>
+                  {isPaused ? (
+                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0 }]} onPress={resumeTimer}>
+                      <Text style={styles.primaryButtonText}>Devam Et</Text>
+                    </Pressable>
+                  ) : (
+                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0 }]} onPress={pauseTimer}>
+                      <Text style={styles.primaryButtonText}>Durdur</Text>
+                    </Pressable>
+                  )}
+                  <Pressable style={[styles.secondaryButton, { flex: 1, marginBottom: 0 }]} onPress={handleStop}>
+                    <Text style={styles.secondaryButtonText}>Dersi Bitir</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={styles.primaryButton} onPress={startTimer}>
+                  <Text style={styles.primaryButtonText}>Derse Başla</Text>
+                </Pressable>
+              )}
 
               {todayTotalSeconds === 0 && !isActive ? (
                 <View style={styles.verticalCards}>
@@ -350,6 +364,26 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  secondaryButton: {
+    backgroundColor: '#26263B',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  secondaryButtonText: {
+    color: theme.colors.accentLight,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    width: '100%',
+    marginBottom: 32,
   },
   cardsRow: {
     flexDirection: 'row',

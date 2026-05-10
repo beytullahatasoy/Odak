@@ -1,7 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee, { AndroidImportance } from '@notifee/react-native';
+// Conditional import for notifee to avoid Expo Go crash
+let notifee: any = null;
+let AndroidImportance: any = null;
 import { useEffect, useRef, useState } from 'react';
 import { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
+import Constants from 'expo-constants';
+
+if (Constants.appOwnership !== 'expo') {
+    try {
+        const notifeeModule = require('@notifee/react-native');
+        notifee = notifeeModule.default;
+        AndroidImportance = notifeeModule.AndroidImportance;
+    } catch (e) {
+        console.log('Notifee import error:', e);
+    }
+}
 
 const ACTIVE_SESSION_KEY = 'odak_active_session_start';
 
@@ -17,14 +30,16 @@ const formatTime = (totalSeconds: number) => {
 
 export function useTimer() {
     const [isActive, setIsActive] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const [secondsElapsed, setSecondsElapsed] = useState(0);
     const [startTime, setStartTime] = useState<string | null>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progress = useSharedValue(0);
 
     const updateNotification = async (seconds: number) => {
+        if (Constants.appOwnership === 'expo' || !notifee) return;
+
         try {
-            await notifee.requestPermission();
             const channelId = await notifee.createChannel({
                 id: 'odak_timer',
                 name: 'Odak Zamanlayıcısı',
@@ -89,6 +104,7 @@ export function useTimer() {
 
     const startTimer = async () => {
         setIsActive(true);
+        setIsPaused(false);
         setSecondsElapsed(0);
         const now = new Date();
         const startMs = now.getTime();
@@ -100,6 +116,14 @@ export function useTimer() {
             await AsyncStorage.setItem(ACTIVE_SESSION_KEY, isoString);
         } catch (e) {
             console.error('Failed to save active session', e);
+        }
+
+        if (Constants.appOwnership !== 'expo' && notifee) {
+            try {
+                await notifee.requestPermission();
+            } catch (e) {
+                console.log('Notifee permission error', e);
+            }
         }
 
         updateNotification(0);
@@ -116,14 +140,39 @@ export function useTimer() {
     };
 
     useEffect(() => {
-        if (isActive && secondsElapsed > 0) {
-            // Progress loops every 3600 seconds (1 hour) linearly to feel alive but slower
+        if (isActive && !isPaused && secondsElapsed > 0) {
             progress.value = withTiming((secondsElapsed % 3600) / 3600, { duration: 1000, easing: Easing.linear });
         }
-    }, [secondsElapsed, isActive, progress]);
+    }, [secondsElapsed, isActive, isPaused, progress]);
+
+    const pauseTimer = () => {
+        setIsPaused(true);
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+        // stop animation where it is
+        progress.value = progress.value;
+    };
+
+    const resumeTimer = () => {
+        setIsPaused(false);
+        const startMs = Date.now() - (secondsElapsed * 1000);
+        
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+
+        intervalRef.current = setInterval(() => {
+            const newSeconds = Math.floor((Date.now() - startMs) / 1000);
+            setSecondsElapsed(newSeconds);
+            updateNotification(newSeconds);
+        }, 1000);
+    };
 
     const stopTimer = () => {
         setIsActive(false);
+        setIsPaused(false);
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
@@ -134,11 +183,14 @@ export function useTimer() {
         // Remove active session from storage
         AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(e => console.error(e));
         
-        try {
-            notifee.stopForegroundService();
-            notifee.cancelNotification('timer');
-        } catch(e) {
-            console.log('Notifee durdurma hatası:', e);
+        
+        if (Constants.appOwnership !== 'expo' && notifee) {
+            try {
+                notifee.stopForegroundService();
+                notifee.cancelNotification('timer');
+            } catch(e) {
+                console.log('Notifee durdurma hatası:', e);
+            }
         }
 
         return duration; // returns total seconds studied
@@ -154,11 +206,14 @@ export function useTimer() {
 
     return {
         isActive,
+        isPaused,
         secondsElapsed,
         formattedTime: formatTime(secondsElapsed),
         progress,
         startTime,
         startTimer,
+        pauseTimer,
+        resumeTimer,
         stopTimer,
     };
 }

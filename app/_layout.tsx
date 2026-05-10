@@ -5,13 +5,24 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import notifee from '@notifee/react-native';
+import Constants from 'expo-constants';
 
-notifee.registerForegroundService((notification) => {
-  return new Promise(() => {
-    // Servis durdurulana kadar arka planda çalışmasını sağlayan açık bir Promise
+let notifee: any = null;
+if (Constants.appOwnership !== 'expo') {
+  try {
+    notifee = require('@notifee/react-native').default;
+  } catch (e) {
+    console.log('Notifee import error:', e);
+  }
+}
+
+if (notifee) {
+  notifee.registerForegroundService((notification: any) => {
+    return new Promise(() => {
+      // Servis durdurulana kadar arka planda çalışmasını sağlayan açık bir Promise
+    });
   });
-});
+}
 
 import { theme } from '@/constants/theme';
 import { useSessionStore } from '@/store/sessionStore';
