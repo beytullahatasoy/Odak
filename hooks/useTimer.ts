@@ -179,6 +179,7 @@ export function useTimer() {
         }
         progress.value = withTiming(0, { duration: 500, easing: Easing.out(Easing.quad) });
         const duration = secondsElapsed;
+        setSecondsElapsed(0);
         
         // Remove active session from storage
         AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(e => console.error(e));

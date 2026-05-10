@@ -137,15 +137,15 @@ export default function AnaSayfa() {
               {isActive ? (
                 <View style={styles.actionButtonsRow}>
                   {isPaused ? (
-                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0 }]} onPress={resumeTimer}>
+                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0, paddingHorizontal: 0 }]} onPress={resumeTimer}>
                       <Text style={styles.primaryButtonText}>Devam Et</Text>
                     </Pressable>
                   ) : (
-                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0 }]} onPress={pauseTimer}>
+                    <Pressable style={[styles.primaryButton, { flex: 1, marginBottom: 0, paddingHorizontal: 0 }]} onPress={pauseTimer}>
                       <Text style={styles.primaryButtonText}>Durdur</Text>
                     </Pressable>
                   )}
-                  <Pressable style={[styles.secondaryButton, { flex: 1, marginBottom: 0 }]} onPress={handleStop}>
+                  <Pressable style={[styles.secondaryButton, { flex: 1, marginBottom: 0, paddingHorizontal: 0 }]} onPress={handleStop}>
                     <Text style={styles.secondaryButtonText}>Dersi Bitir</Text>
                   </Pressable>
                 </View>
