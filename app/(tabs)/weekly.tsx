@@ -73,7 +73,14 @@ export default function WeeklyScreen() {
             labelTextStyle: { color: theme.colors.textSecondary, fontSize: 8, fontWeight: 'bold' },
             frontColor: isMax ? theme.colors.accentLight : '#1C1C28',
             topLabelComponent: () => (
-                isMax ? <View style={styles.chartMaxBadge}><Text style={styles.chartMaxText}>MAX</Text></View> : null
+                <View style={{ alignItems: 'center', marginBottom: 4 }}>
+                    {isMax && <View style={styles.chartMaxBadge}><Text style={styles.chartMaxText}>MAX</Text></View>}
+                    {value > 0 && (
+                        <Text style={{ color: theme.colors.textSecondary, fontSize: 8, fontWeight: 'bold' }}>
+                            {viewMode === 'Saat' ? `${value.toFixed(1)}s` : `${value}`}
+                        </Text>
+                    )}
+                </View>
             ),
         };
     });

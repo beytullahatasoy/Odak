@@ -71,8 +71,8 @@ export function useTimer() {
 
     useEffect(() => {
         if (isActive && secondsElapsed > 0) {
-            // Progress loops every 60 seconds linearly to feel alive
-            progress.value = withTiming((secondsElapsed % 60) / 60, { duration: 1000, easing: Easing.linear });
+            // Progress loops every 3600 seconds (1 hour) linearly to feel alive but slower
+            progress.value = withTiming((secondsElapsed % 3600) / 3600, { duration: 1000, easing: Easing.linear });
         }
     }, [secondsElapsed, isActive, progress]);
 
