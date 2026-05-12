@@ -49,6 +49,12 @@ export default function AnaSayfa() {
     return { hrs, mins };
   };
 
+  const formatGoalTime = (minutes: number) => {
+    if (minutes < 60) return `${minutes} dk`;
+    if (minutes % 60 === 0) return `${minutes / 60} saat`;
+    return `${Math.floor(minutes / 60)}s ${minutes % 60}dk`;
+  };
+
   const { hrs: totalHrs, mins: totalMins } = formatTotalTime(todayTotalSeconds);
   const dailyGoalSeconds = settings.dailyGoalMinutes * 60;
   const remainingSeconds = Math.max(0, dailyGoalSeconds - todayTotalSeconds);
@@ -168,7 +174,7 @@ export default function AnaSayfa() {
                   <View style={styles.fullCard}>
                     <View style={styles.fullCardLeft}>
                       <Text style={styles.cardSmallLabelLeft}>BUGÜNKÜ HEDEF</Text>
-                      <Text style={styles.cardValue}>0<Text style={{ fontSize: 16, color: theme.colors.textSecondary }}> / {settings.dailyGoalMinutes / 60}</Text></Text>
+                      <Text style={styles.cardValue}>0<Text style={{ fontSize: 16, color: theme.colors.textSecondary }}> / {formatGoalTime(settings.dailyGoalMinutes)}</Text></Text>
                       <Text style={styles.cardSubValue}>Saat hedefin</Text>
                     </View>
                     <FontAwesome name="bullseye" size={20} color={theme.colors.textSecondary} />

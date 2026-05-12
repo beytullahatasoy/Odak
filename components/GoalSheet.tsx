@@ -22,6 +22,7 @@ export default function GoalSheet({ visible, onClose }: GoalSheetProps) {
     const [customMinutes, setCustomMinutes] = useState(
         selectedHours ? '' : settings.dailyGoalMinutes.toString()
     );
+    const [inputType, setInputType] = useState<'dakika' | 'saat'>('dakika');
 
     const presets = [1, 2, 3, 4, 5];
 
@@ -42,7 +43,7 @@ export default function GoalSheet({ visible, onClose }: GoalSheetProps) {
         } else if (customMinutes) {
             const parsed = parseInt(customMinutes, 10);
             if (!isNaN(parsed) && parsed > 0) {
-                finalMins = parsed;
+                finalMins = inputType === 'saat' ? parsed * 60 : parsed;
             }
         }
         updateSettings({ dailyGoalMinutes: finalMins });
@@ -98,10 +99,14 @@ export default function GoalSheet({ visible, onClose }: GoalSheetProps) {
                             keyboardType="number-pad"
                             value={customMinutes}
                             onChangeText={handleCustomChange}
-                            placeholder="Dakika girin..."
+                            placeholder="Süre girin..."
                             placeholderTextColor={theme.colors.textSecondary}
                         />
-                        <Text style={styles.inputSuffix}>DAKİKA</Text>
+                        <Pressable onPress={() => setInputType(prev => prev === 'dakika' ? 'saat' : 'dakika')}>
+                            <Text style={[styles.inputSuffix, {color: theme.colors.accentLight}]}>
+                                {inputType === 'dakika' ? 'DAKİKA' : 'SAAT'} 🔁
+                            </Text>
+                        </Pressable>
                     </View>
 
                     {/* Success Pill Component Mock */}

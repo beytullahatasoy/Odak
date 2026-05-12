@@ -15,8 +15,6 @@ const DAYS = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ'];
 export default function WeeklyScreen() {
     const { sessions } = useSessionStore();
     const { settings } = useSettingsStore();
-
-    const [viewMode, setViewMode] = useState<'Saat' | 'Seans'>('Saat');
     const insightText = getWeeklyComparison(sessions);
 
     const weeklyData = useMemo(() => {
@@ -62,7 +60,7 @@ export default function WeeklyScreen() {
 
     const chartData: barDataItem[] = entries.map(([dateStr, stats], index) => {
         const dObj = new Date(dateStr);
-        const value = viewMode === 'Saat' ? (stats.duration / 3600) : stats.count;
+        const value = (stats.duration / 3600);
         const isMax = index === bestDayIndex && value > 0;
 
         return {
@@ -77,7 +75,7 @@ export default function WeeklyScreen() {
                 return (
                     <View style={{ alignItems: 'center', marginBottom: 4 }}>
                         <Text style={{ color: isMax ? theme.colors.accentLight : theme.colors.textSecondary, fontSize: 11, fontWeight: 'bold' }}>
-                            {viewMode === 'Saat' ? `${value.toFixed(1)}s` : `${value}`}
+                            {`${value.toFixed(1)}s`}
                         </Text>
                     </View>
                 );
@@ -156,20 +154,6 @@ export default function WeeklyScreen() {
                             <View>
                                 <Text style={styles.graphTitle}>Odak Dağılımı</Text>
                                 <Text style={styles.graphSub}>Son 7 günlük aktivite grafiği</Text>
-                            </View>
-                            <View style={styles.toggleRow}>
-                                <Pressable
-                                    style={[styles.toggleBtn, viewMode === 'Saat' && styles.toggleActive]}
-                                    onPress={() => setViewMode('Saat')}
-                                >
-                                    <Text style={[styles.toggleText, viewMode === 'Saat' && styles.toggleTextActive]}>Saat</Text>
-                                </Pressable>
-                                <Pressable
-                                    style={[styles.toggleBtn, viewMode === 'Seans' && styles.toggleActive]}
-                                    onPress={() => setViewMode('Seans')}
-                                >
-                                    <Text style={[styles.toggleText, viewMode === 'Seans' && styles.toggleTextActive]}>Seans</Text>
-                                </Pressable>
                             </View>
                         </View>
 

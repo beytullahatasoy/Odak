@@ -46,6 +46,12 @@ export default function DailyScreen() {
     const diffMins = Math.floor(todayTotalSeconds / 60) - 25;
     const diffDisplay = diffMins >= 0 ? `+${diffMins}` : diffMins.toString();
 
+    const formatGoalTime = (minutes: number) => {
+        if (minutes < 60) return `${minutes} dakika`;
+        if (minutes % 60 === 0) return `${minutes / 60} saat`;
+        return `${Math.floor(minutes / 60)} saat ${minutes % 60} dk`;
+    };
+
     const [showAllHistory, setShowAllHistory] = useState(false);
     const displayedSessions = showAllHistory ? todaySessions : todaySessions.slice(0, 3);
 
@@ -68,7 +74,7 @@ export default function DailyScreen() {
                         <View style={styles.goalRow}>
                             <View>
                                 <Text style={styles.goalLabel}>HEDEF İLERLEMESİ</Text>
-                                <Text style={styles.goalSub}>Günlük hedef: {settings.dailyGoalMinutes / 60} saat</Text>
+                                <Text style={styles.goalSub}>Günlük hedef: {formatGoalTime(settings.dailyGoalMinutes)}</Text>
                             </View>
                             <View style={styles.goalRight}>
                                 <Text style={styles.goalPercent}>{progressPercent}%</Text>
