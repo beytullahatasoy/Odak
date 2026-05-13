@@ -168,7 +168,7 @@ export default function WeeklyScreen() {
                                 hideYAxisText
                                 xAxisThickness={0}
                                 yAxisThickness={0}
-                                maxValue={Math.max(1, ...chartData.map(d => d.value ?? 0))}
+                                maxValue={Math.max(1, ...chartData.map(d => d.value ?? 0)) * 1.2}
                                 height={150}
                             />
                         </View>

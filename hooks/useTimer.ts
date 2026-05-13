@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 let notifee: any = null;
 let AndroidImportance: any = null;
 import { useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
 import Constants from 'expo-constants';
 
@@ -36,7 +37,7 @@ export function useTimer() {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progress = useSharedValue(0);
 
-    const updateNotification = async (seconds: number) => {
+    const updateNotification = async (seconds: number, isPaused: boolean = false, startMs: number | null = null) => {
         if (Constants.appOwnership === 'expo' || !notifee) return;
 
         try {
@@ -48,13 +49,17 @@ export function useTimer() {
 
             await notifee.displayNotification({
                 id: 'timer',
-                title: 'Odak Süresi Devam Ediyor',
-                body: formatTime(seconds),
+                title: isPaused ? 'Odak Süresi Duraklatıldı' : 'Odak Süresi Devam Ediyor',
+                body: isPaused ? formatTime(seconds) : undefined,
                 android: {
                     channelId,
                     asForegroundService: true,
                     ongoing: true,
                     onlyAlertOnce: true,
+                    showTimestamp: !isPaused,
+                    timestamp: startMs || undefined,
+                    usesChronometer: !isPaused,
+                    chronometerDirection: 'up',
                 },
             });
         } catch (e) {
@@ -78,8 +83,8 @@ export function useTimer() {
                         const initialSeconds = Math.floor((nowMs - startMs) / 1000);
                         setSecondsElapsed(initialSeconds);
                         
-                        // Restart notification
-                        updateNotification(initialSeconds);
+                        // Restart notification with chronometer
+                        updateNotification(initialSeconds, false, startMs);
 
                         if (intervalRef.current) {
                             clearInterval(intervalRef.current);
@@ -88,7 +93,6 @@ export function useTimer() {
                         intervalRef.current = setInterval(() => {
                             const newSeconds = Math.floor((Date.now() - startMs) / 1000);
                             setSecondsElapsed(newSeconds);
-                            updateNotification(newSeconds);
                         }, 1000);
                     } else {
                         await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
@@ -126,7 +130,7 @@ export function useTimer() {
             }
         }
 
-        updateNotification(0);
+        updateNotification(0, false, startMs);
 
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -135,7 +139,6 @@ export function useTimer() {
         intervalRef.current = setInterval(() => {
             const newSeconds = Math.floor((Date.now() - startMs) / 1000);
             setSecondsElapsed(newSeconds);
-            updateNotification(newSeconds);
         }, 1000);
     };
 
@@ -153,20 +156,25 @@ export function useTimer() {
         }
         // stop animation where it is
         progress.value = progress.value;
+        updateNotification(secondsElapsed, true);
     };
 
     const resumeTimer = () => {
         setIsPaused(false);
         const startMs = Date.now() - (secondsElapsed * 1000);
+        const newStartTimeIso = new Date(startMs).toISOString();
+        setStartTime(newStartTimeIso);
+        AsyncStorage.setItem(ACTIVE_SESSION_KEY, newStartTimeIso).catch(e => console.error(e));
         
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
 
+        updateNotification(secondsElapsed, false, startMs);
+
         intervalRef.current = setInterval(() => {
             const newSeconds = Math.floor((Date.now() - startMs) / 1000);
             setSecondsElapsed(newSeconds);
-            updateNotification(newSeconds);
         }, 1000);
     };
 
@@ -198,12 +206,21 @@ export function useTimer() {
     };
 
     useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active' && isActive && !isPaused && startTime) {
+                const startMs = new Date(startTime).getTime();
+                const newSeconds = Math.floor((Date.now() - startMs) / 1000);
+                setSecondsElapsed(newSeconds);
+            }
+        });
+
         return () => {
+            subscription.remove();
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
             }
         };
-    }, []);
+    }, [isActive, isPaused, startTime]);
 
     return {
         isActive,
