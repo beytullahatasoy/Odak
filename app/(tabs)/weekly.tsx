@@ -19,12 +19,12 @@ export default function WeeklyScreen() {
 
     const weeklyData = useMemo(() => {
         const data: { [key: string]: { duration: number; count: number } } = {};
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayDate = new Date(todayStr + 'T00:00:00Z');
 
         for (let i = 6; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - i);
+            const d = new Date(todayDate);
+            d.setUTCDate(todayDate.getUTCDate() - i);
             const isoDate = d.toISOString().split('T')[0];
             data[isoDate] = { duration: 0, count: 0 };
         }
@@ -59,13 +59,13 @@ export default function WeeklyScreen() {
     });
 
     const chartData: barDataItem[] = entries.map(([dateStr, stats], index) => {
-        const dObj = new Date(dateStr);
+        const dObj = new Date(dateStr + 'T00:00:00Z');
         const value = (stats.duration / 3600);
         const isMax = index === bestDayIndex && value > 0;
 
         return {
             value,
-            label: DAYS[dObj.getDay() === 0 ? 6 : dObj.getDay() - 1],
+            label: DAYS[dObj.getUTCDay() === 0 ? 6 : dObj.getUTCDay() - 1],
             spacing: 16,
             labelWidth: 30,
             labelTextStyle: { color: theme.colors.textSecondary, fontSize: 11, fontWeight: 'bold' },
